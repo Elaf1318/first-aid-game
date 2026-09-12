@@ -34,7 +34,8 @@ button {
     color: inherit;
 }
 
-button:hover { background: #e4f3f0; }
+.answer { background: #f8fcfb; color: #173b3a; }
+.answer:hover, .answer:focus { background: #f8fcfb; }
 .start { background: #087b72; color: white; border: 0; }
 .start:hover { background: #05665f; }
 .result { padding: 12px; border-radius: 12px; background: #f2faf8; }

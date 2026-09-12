@@ -34,7 +34,7 @@ function startQuiz() {
     currentQuestion = questions[Math.floor(Math.random() * questions.length)];
     let html = `<h2>${currentQuestion.q}</h2><p>اختر التصرف الأنسب:</p>`;
     currentQuestion.a.forEach((answer, index) => {
-        html += `<button onclick="checkAnswer(${index})">${answer}</button>`;
+        html += `<button class="answer" onclick="checkAnswer(${index})">${answer}</button>`;
     });
     document.getElementById("app").innerHTML = html;
 }
