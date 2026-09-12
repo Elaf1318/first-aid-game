@@ -7,8 +7,8 @@ body {
     place-items: center;
     padding: 20px;
     box-sizing: border-box;
-    background: #eef7f6;
-    color: #173b3a;
+    background: #fff4f4;
+    color: #3d2525;
 }
 
 #app {
@@ -18,8 +18,12 @@ body {
     padding: 30px;
     box-sizing: border-box;
     border-radius: 20px;
-    box-shadow: 0 10px 30px #173b3a18;
+    border-top: 6px solid #c9252d;
+    box-shadow: 0 10px 30px #6b1c2018;
 }
+
+h1 { color: #b51f28; }
+.crescent { color: #c9252d; font-size: 1.3em; }
 
 button {
     display: block;
@@ -28,17 +32,17 @@ button {
     padding: 15px;
     font-size: 17px;
     cursor: pointer;
-    border: 1px solid #cde3e0;
+    border: 1px solid #ead1d2;
     border-radius: 12px;
     background: #f8fcfb;
     color: inherit;
 }
 
-.answer { background: #f8fcfb; color: #173b3a; }
-.answer:hover, .answer:focus { background: #f8fcfb; }
-.start { background: #087b72; color: white; border: 0; }
-.start:hover { background: #05665f; }
-.result { padding: 12px; border-radius: 12px; background: #f2faf8; }
+.answer { background: #fffafa; color: #3d2525; }
+.answer:hover, .answer:focus { background: #fffafa; }
+.start { background: #c9252d; color: white; border: 0; }
+.start:hover { background: #a91b23; }
+.result { padding: 12px; border-radius: 12px; background: #fff0f0; }
 .wrong { background: #fff4f3; }
 
 @media (max-width: 420px) {
