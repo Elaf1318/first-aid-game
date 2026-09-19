@@ -25,7 +25,10 @@ body {
     box-shadow: 0 12px 32px #6b1c2014;
 }
 
-h1 { color: #8f1d25; }
+h1 {
+    color: #8f1d25;
+}
+
 .kit {
     display: inline-grid;
     place-items: center;
@@ -51,14 +54,43 @@ button {
     color: inherit;
 }
 
-.answer { background: #fffafa; color: #302525; }
-.answer:hover, .answer:focus { background: #fffafa; }
-.start { background: #ad2028; color: white; border: 0; box-shadow: 0 5px 12px #ad202833; }
-.start:hover { background: #941820; }
-.result { padding: 12px; border-radius: 12px; background: #fff1f0; }
-.wrong { background: #fff6f4; }
+.answer {
+    background: #fffafa;
+    color: #302525;
+}
+
+.answer:hover,
+.answer:focus {
+    background: #fffafa;
+}
+
+.start {
+    background: #ad2028;
+    color: white;
+    border: 0;
+    box-shadow: 0 5px 12px #ad202833;
+}
+
+.start:hover {
+    background: #941820;
+}
+
+.result {
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff1f0;
+}
+
+.wrong {
+    background: #fff6f4;
+}
 
 @media (max-width: 420px) {
-    #app { padding: 24px 18px; }
-    h1 { font-size: 28px; }
+    #app {
+        padding: 24px 18px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
 }
