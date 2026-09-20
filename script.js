@@ -1,7 +1,7 @@
-const SUPABASE_URL = "https://idizmnvkxenfjdodfyvm.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://idizmnvkxenfjdodfyvm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rebZV1dwORO6xvM-fHTVwA_9QsVpPTO";
 
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
@@ -53,7 +53,7 @@ function checkAnswer(selected) {
         : `<div class="result wrong"><h2>❌ إجابة غير صحيحة</h2><p>الإجابة الصحيحة: <strong>${currentQuestion.a[currentQuestion.c]}</strong></p><p>${currentQuestion.e}</p></div>`;
 }
 async function testSupabase() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from("questions")
         .select("*")
         .limit(1);
