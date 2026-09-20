@@ -23,6 +23,7 @@ body {
     border-radius: 20px;
     border-top: 6px solid #b51f28;
     box-shadow: 0 12px 32px #6b1c2014;
+    position: relative;
 }
 
 h1 {
@@ -83,6 +84,162 @@ button {
 
 .wrong {
     background: #fff6f4;
+}
+
+/* بطاقات اختيار التحدي */
+.mode-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 15px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    border: 2px solid #ecd9d6;
+    background: #ffffff;
+    color: #302525;
+    text-align: center;
+}
+
+.mode-card.primary {
+    background: #ad2028;
+    color: white;
+    border-color: #ad2028;
+    box-shadow: 0 5px 14px #ad202833;
+}
+
+.mode-card.primary:hover {
+    background: #941820;
+}
+
+.mode-card.secondary {
+    background: #f8fcfb;
+    border: 2px solid #ecd9d6;
+}
+
+.mode-card.secondary:hover {
+    background: #fff5f4;
+    border-color: #ad2028;
+}
+
+.mode-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.mode-desc {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* رأس الأسئلة والمؤقت */
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ecd9d6;
+}
+
+.progress-text {
+    font-weight: bold;
+    color: #8f1d25;
+    font-size: 16px;
+}
+
+.timer-box {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #fff1f0;
+    color: #8f1d25;
+    border: 1px solid #ecd9d6;
+    transition: all 0.2s ease;
+}
+
+.timer-warning {
+    background: #b51f28 !important;
+    color: white !important;
+    border-color: #b51f28 !important;
+    animation: pulseTimer 0.5s infinite alternate;
+}
+
+@keyframes pulseTimer {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+}
+
+/* خيارات الإجابة والتغذية الراجعة */
+.correct-option {
+    background: #e6f4ea !important;
+    border-color: #34a853 !important;
+    color: #137333 !important;
+    font-weight: bold;
+}
+
+.wrong-option {
+    background: #fce8e6 !important;
+    border-color: #ea4335 !important;
+    color: #c5221f !important;
+}
+
+.inline-feedback {
+    margin-top: 15px;
+    text-align: right;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.score-display {
+    color: #b51f28;
+    font-size: 32px;
+    margin: 15px 0;
+}
+
+/* شاشة انقطع الاتصال */
+.offline-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(48, 37, 37, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.offline-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    border-top: 6px solid #b51f28;
+    max-width: 90%;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+}
+
+.offline-content h2 {
+    color: #b51f28;
+    margin-top: 0;
 }
 
 @media (max-width: 420px) {

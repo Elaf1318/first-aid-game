@@ -1,65 +1,352 @@
 const SUPABASE_URL = "https://idizmnvkxenfjdodfyvm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rebZV1dwORO6xvM-fHTVwA_9QsVpPTO";
 
+// التحكم في إظهار / إخفاء خيار المسعف الصغير
+const SHOW_CHILD_MODE = true;
+
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
-const questions = [
-    { q: "انهار شخص بالغ فجأة، وهو فاقد الوعي ولا يتنفس طبيعيًا. ماذا تفعل؟", a: ["تنتظر", "تبدأ CPR", "تعطيه ماء", "تبحث عن نبض دقيقة"], c: 1, e: "ابدأ CPR واطلب المساعدة الطارئة." },
-    { q: "ما سرعة ضغطات الصدر أثناء CPR للبالغ؟", a: ["60–80/دقيقة", "80–95/دقيقة", "100–120/دقيقة", "130–150/دقيقة"], c: 2, e: "المعدل الصحيح 100–120 ضغطة في الدقيقة." },
-    { q: "بعد حادث، أصبح شخص شاحبًا وباردًا ويتنفس بسرعة ويشعر بدوخة شديدة. ماذا قد تشير هذه العلامات؟", a: ["جفاف بسيط", "نزيف داخلي", "حرق", "كسر بسيط"], c: 1, e: "هذه في الغالب علامات نزيف داخلي وتستدعي طلب الإسعاف فورًا." },
-    { q: "شخص بالغ يختنق ولا يستطيع الكلام أو السعال بفعالية. ماذا تفعل؟", a: ["تعطيه ماء", "مناورة هيملك (5 ضربات ظهر و5 ضغطات بطن بالتناوب)", "تضغط على صدره", "تدخل أصابعك في فمه"], c: 1, e: "استخدم 5 ضربات ظهر و5 ضغطات بطن بالتناوب." },
-    { q: "تعرض شخص للدغة أفعى. ماذا تفعل؟", a: ["تمتص السم", "تضع عاصبة", "تُبقيه ثابتًا وتتصل بالطوارئ", "تضع ثلجًا"], c: 2, e: "ثبّت الشخص والطرف واطلب المساعدة الطبية فورًا." },
-    { q: "أصبح شخص مختنق فاقدًا للوعي. ماذا تفعل؟", a: ["تدخل أصابعك في فمه", "تبدأ CPR", "مناورة هيملك", "تعطيه ماء"], c: 1, e: "ابدأ CPR وأزل الجسم فقط إذا كان ظاهرًا." },
-    { q: "شخص ينزف بشدة من ساقه، والضغط المباشر لم يوقف النزيف. ماذا تفعل؟", a: ["تزيل الضماد", "تضع عاصبة (Tourniquet)", "تضع ثلجًا", "تغسل الجرح"], c: 1, e: "استخدم العاصبة للنزيف الشديد من الطرف." },
-    { q: "امتلأ الضماد بالدم أثناء الضغط على جرح ينزف. ماذا تفعل؟", a: ["تزيله", "تضيف ضمادًا فوقه", "تغسل الجرح", "تتركه"], c: 1, e: "استمر بالضغط وأضف ضمادًا فوق الموجود." },
-    { q: "انسكب ماء ساخن على يد طفل. ماذا تفعل؟", a: ["معجون أسنان", "ماء جارٍ", "ثلج مباشر", "فتح الفقاعات"], c: 1, e: "برّد الحرق بالماء الجاري." },
-    { q: "أصيب شخص بكسر مفتوح وظهر العظم. ماذا تفعل؟", a: ["تعيد العظم لمكانه", "تغطي الجرح بضماد نظيف", "تغسله بقوة", "تضغط على العظم"], c: 1, e: "غطِّ الجرح ولا تحاول إعادة العظم." },
-    { q: "خرجت أنسجة من جرح في البطن. ماذا تفعل؟", a: ["تعيدها للداخل", "تغطيها بضماد نظيف رطب", "تضغط عليها", "تغسلها"], c: 1, e: "غطِّها دون إعادتها للداخل." },
-    { q: "بدأ أنف شخص بالنزيف. ماذا تفعل؟", a: ["يميل للخلف", "يميل للأمام ويضغط على الأنف", "يستلقي", "يضع الثلج داخل أنفه"], c: 1, e: "يميل للأمام ويضغط على الجزء اللين من الأنف." },
-    { q: "فجأة مال جانب وجه شخص، وضعف ذراعه وأصبح كلامه غير واضح. ماذا تفعل؟", a: ["تعطيه ماء", "تنتظر", "تطلب الإسعاف فورًا", "تجعله يمشي"], c: 2, e: "هذه في الغالب علامات السكتة وتستدعي طلب الإسعاف فورًا." },
-    { q: "شخص مصاب بالسكري يرتجف ويتعرق، لكنه واعٍ وقادر على البلع. ماذا تعطيه؟", a: ["ماء", "إنسولين", "سكر سريع", "دواء"], c: 2, e: "أعطه مصدرًا سريعًا للسكر." },
-    { q: "بدأ شخص بالتشنج أمامك. ماذا يجب أن تتجنب؟", a: ["إبعاد الأشياء الخطرة", "حمايته من الإصابة", "وضع شيء في فمه", "البقاء بجانبه"], c: 2, e: "لا تضع أي شيء في فمه." },
-    { q: "أخرجت شخصًا من الماء، وهو فاقد الوعي ولا يتنفس طبيعيًا. ماذا تفعل؟", a: ["تضغط على بطنه", "تبدأ CPR", "تنتظر خروج الماء", "تجعله يجلس"], c: 1, e: "ابدأ CPR واطلب المساعدة." },
-    { q: "دخلت مادة كيميائية قوية في عين شخص. ماذا تفعل؟", a: ["يفرك عينه", "يغسلها بالماء فورًا", "يغطيها بقطن جاف", "يضع عصيرًا"], c: 1, e: "اغسل العين بالماء فورًا وباستمرار." },
-    { q: "ابتلع طفل مادة تنظيف كاوية. ماذا تفعل؟", a: ["تجعله يتقيأ", "تعطيه طعامًا", "تتصل بالطوارئ", "تنتظر الأعراض"], c: 2, e: "اتصل بالطوارئ ولا تحفزه على التقيؤ." },
-    { q: "شعر شخص بدوخة شديدة وشحوب ثم أغمي عليه للحظات. ماذا تفعل؟", a: ["تجعله يمشي", "تمدده وتراقبه", "تعطيه دواء", "ترشه بماء ساخن"], c: 1, e: "أبقه مستلقيًا وراقبه." },
-    { q: "شخص بقي طويلًا تحت الشمس، وأصبح مشوشًا وجلده ساخنًا. ماذا تفعل؟", a: ["تعطيه مسكنًا", "تبرده فورًا وتطلب الإسعاف", "تغطيه بملابس", "تتركه يرتاح"], c: 1, e: "ابدأ التبريد سريعًا واطلب الإسعاف." },
-    { q: "وصلت إلى حادث مروري. ما أول ما تتأكد منه؟", a: ["نبض المصاب", "سلامة المكان", "إعطاؤه ماء", "تحريكه"], c: 1, e: "تأكد من سلامة المكان قبل الاقتراب." },
-    { q: "أصيب شخص ويظهر عليه شحوب وبرودة وتنفس سريع. ماذا تفعل؟", a: ["تجعله يمشي", "تطلب الإسعاف وتبقيه دافئًا", "تعطيه قهوة", "ترفع ساقيه دائمًا"], c: 1, e: "اطلب الإسعاف وأبقِه دافئًا وراقبه." },
-    { q: "وجدت جهاز AED بجانب شخص فاقد الوعي ولا يتنفس طبيعيًا. ماذا يفعل الجهاز؟", a: ["يقيس ضغط الدم", "يحلل نظم القلب وقد يعطي صدمة", "يعيد التنفس تلقائيًا", "يوقف النزيف"], c: 1, e: "يحلل نظم القلب ويعطي صدمة إذا كانت مطلوبة." },
-    { q: "شخص يشعر بضغط في صدره مع تعرق بارد وضيق نفس. ماذا تفعل؟", a: ["تجعله يمشي", "تطلب الإسعاف", "تعطيه ماء", "تنتظر"], c: 1, e: "هذه أعراض خطيرة تستدعي الإسعاف فورًا." },
-    { q: "دخل جسم صغير في عين شخص. ماذا تفعل؟", a: ["يفرك عينه", "يفركها بقوة", "يغسلها بالماء", "يحاول إخراجه بأداة"], c: 2, e: "اغسل العين بالماء ولا تفركها." },
-    { q: "وجدت شخصًا يحتاج إلى إسعاف عاجل. ما الرقم؟", a: ["998", "999", "997", "993"], c: 2, e: "997 هو رقم الإسعاف في السعودية." },
-    { q: "في حالة طارئة وتحتاج خدمات الطوارئ الموحدة، ما الرقم؟", a: ["997", "911", "998", "993"], c: 1, e: "911 هو رقم الطوارئ الموحد." }
-];
 
-let currentQuestion;
+let allQuestions = [];
+let currentGameQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let timerInterval = null;
+let timeLeft = 10;
+let gameInProgress = false;
+let isOfflinePaused = false;
+let offlineTimerInterval = null;
+let offlineTimeLeft = 120;
+let questionAnswered = false;
 
-function startQuiz() {
-    currentQuestion = questions[Math.floor(Math.random() * questions.length)];
-    let html = `<h2>${currentQuestion.q}</h2><p>اختر التصرف الأنسب:</p>`;
-    currentQuestion.a.forEach((answer, index) => {
-        html += `<button class="answer" onclick="checkAnswer(${index})">${answer}</button>`;
-    });
-    document.getElementById("app").innerHTML = html;
+// صوت تنبيه لمؤقت الثواني الأخيرة (3، 2، 1)
+function playWarningBeep() {
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {
+        // يتجاهل إذا لم يتفاعل المستخدم بعد مع الصفحة
+    }
 }
 
-function checkAnswer(selected) {
-    const isCorrect = selected === currentQuestion.c;
-    document.getElementById("app").innerHTML = isCorrect
-        ? `<div class="result"><h2>✅ إجابة صحيحة!</h2><h3>مبروك! أنت مشروع مسعفٍ قدير.</h3><p>${currentQuestion.e}</p><p>اثبت. تنفّس. فكّر. ثم تصرّف.</p></div>`
-        : `<div class="result wrong"><h2>❌ إجابة غير صحيحة</h2><p>الإجابة الصحيحة: <strong>${currentQuestion.a[currentQuestion.c]}</strong></p><p>${currentQuestion.e}</p></div>`;
-}
-async function testSupabase() {
+async function loadQuestions() {
     const { data, error } = await supabaseClient
         .from("questions")
         .select("*")
-        .limit(1);
+        .order("question_number");
 
-    console.log("Data:", data);
-    console.log("Error:", error);
+    if (error) {
+        console.error("فشل تحميل الأسئلة:", error);
+        return false;
+    }
+
+    allQuestions = data.map(q => ({
+        q: q.question_text,
+        a: q.options,
+        c: q.correct_option,
+        e: q.explanation
+    }));
+
+    console.log("تم تحميل الأسئلة:", allQuestions);
+    return true;
 }
 
-testSupabase();
+function renderHomeScreen(message = "") {
+    gameInProgress = false;
+    clearInterval(timerInterval);
+    clearInterval(offlineTimerInterval);
+    hideOfflineOverlay();
+
+    const app = document.getElementById("app");
+    let html = `
+        <h1><span class="kit">✚</span> أنت المسعف</h1>
+        <p>موقف واحد، قرار واحد. هل أنت مستعد؟</p>
+    `;
+
+    if (message) {
+        html += `<div class="result wrong" style="margin-bottom: 15px;"><p>${message}</p></div>`;
+    }
+
+    html += `
+        <div class="mode-selection">
+            <button class="mode-card primary" onclick="startAdultChallenge()">
+                <span class="mode-title">🚑 المسعف</span>
+                <span class="mode-desc">تحدي الإسعافات الأولية</span>
+            </button>
+    `;
+
+    if (SHOW_CHILD_MODE) {
+        html += `
+            <button class="mode-card secondary" onclick="startChildChallenge()">
+                <span class="mode-title">🧒 المسعف الصغير</span>
+                <span class="mode-desc">تحدٍ تعليمي للأطفال</span>
+            </button>
+        `;
+    }
+
+    html += `</div>`;
+    app.innerHTML = html;
+}
+
+async function startAdultChallenge() {
+    if (allQuestions.length === 0) {
+        const success = await loadQuestions();
+        if (!success || allQuestions.length === 0) {
+            alert("تعذر تحميل الأسئلة. يرجى التثبت من الاتصال بالإنترنت والمحاولة مجدداً.");
+            return;
+        }
+    }
+
+    // اختيار 10 أسئلة عشوائية بدون تكرار
+    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+    currentGameQuestions = shuffled.slice(0, 10);
+    currentQuestionIndex = 0;
+    score = 0;
+    gameInProgress = true;
+
+    renderQuestion();
+}
+
+function startChildChallenge() {
+    alert("قريباً... تحدي المسعف الصغير!");
+}
+
+function renderQuestion() {
+    questionAnswered = false;
+    const currentQ = currentGameQuestions[currentQuestionIndex];
+    timeLeft = 10;
+
+    const app = document.getElementById("app");
+    let html = `
+        <div class="quiz-header">
+            <span class="progress-text">السؤال ${currentQuestionIndex + 1} من 10</span>
+            <span id="timer" class="timer-box">⏱️ 10</span>
+        </div>
+        <div class="question-container">
+            <h2>${currentQ.q}</h2>
+            <p>اختر التصرف الأنسب:</p>
+            <div class="options-list">
+    `;
+
+    currentQ.a.forEach((answer, index) => {
+        html += `<button class="answer" id="opt-${index}" onclick="handleAnswerSelect(${index})">${answer}</button>`;
+    });
+
+    html += `
+            </div>
+            <div id="feedback-area"></div>
+        </div>
+    `;
+
+    app.innerHTML = html;
+    startTimer();
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    const timerElem = document.getElementById("timer");
+
+    timerInterval = setInterval(() => {
+        if (isOfflinePaused) return;
+
+        timeLeft--;
+        if (timerElem) {
+            timerElem.innerText = `⏱️ ${timeLeft}`;
+            if (timeLeft <= 3 && timeLeft > 0) {
+                timerElem.classList.add("timer-warning");
+                playWarningBeep();
+            } else if (timeLeft > 3) {
+                timerElem.classList.remove("timer-warning");
+            }
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            if (!questionAnswered) {
+                handleTimeOut();
+            }
+        }
+    }, 1000);
+}
+
+function handleAnswerSelect(selectedIndex) {
+    if (questionAnswered) return;
+    questionAnswered = true;
+    clearInterval(timerInterval);
+
+    const currentQ = currentGameQuestions[currentQuestionIndex];
+    const isCorrect = selectedIndex === currentQ.c;
+    if (isCorrect) score++;
+
+    currentQ.a.forEach((_, idx) => {
+        const btn = document.getElementById(`opt-${idx}`);
+        if (btn) {
+            btn.disabled = true;
+            if (idx === currentQ.c) {
+                btn.classList.add("correct-option");
+            } else if (idx === selectedIndex) {
+                btn.classList.add("wrong-option");
+            }
+        }
+    });
+
+    const feedbackElem = document.getElementById("feedback-area");
+    if (feedbackElem) {
+        feedbackElem.innerHTML = isCorrect
+            ? `<div class="result inline-feedback"><h2>✅ إجابة صحيحة!</h2><p>${currentQ.e}</p></div>`
+            : `<div class="result wrong inline-feedback"><h2>❌ إجابة غير صحيحة</h2><p>الإجابة الصحيحة: <strong>${currentQ.a[currentQ.c]}</strong></p><p>${currentQ.e}</p></div>`;
+    }
+
+    setTimeout(() => {
+        nextQuestion();
+    }, 2200);
+}
+
+function handleTimeOut() {
+    questionAnswered = true;
+    const currentQ = currentGameQuestions[currentQuestionIndex];
+
+    currentQ.a.forEach((_, idx) => {
+        const btn = document.getElementById(`opt-${idx}`);
+        if (btn) {
+            btn.disabled = true;
+            if (idx === currentQ.c) {
+                btn.classList.add("correct-option");
+            }
+        }
+    });
+
+    const feedbackElem = document.getElementById("feedback-area");
+    if (feedbackElem) {
+        feedbackElem.innerHTML = `<div class="result wrong inline-feedback"><h2>⏰ انتهى الوقت!</h2><p>الإجابة الصحيحة: <strong>${currentQ.a[currentQ.c]}</strong></p><p>${currentQ.e}</p></div>`;
+    }
+
+    setTimeout(() => {
+        nextQuestion();
+    }, 2200);
+}
+
+function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < 10 && currentQuestionIndex < currentGameQuestions.length) {
+        renderQuestion();
+    } else {
+        finishGame();
+    }
+}
+
+function finishGame() {
+    gameInProgress = false;
+    clearInterval(timerInterval);
+    const app = document.getElementById("app");
+    app.innerHTML = `
+        <div class="result final-result">
+            <h2>🏆 اكتمل التحدي!</h2>
+            <h1 class="score-display">نتيجتك: ${score} / 10</h1>
+            <p>${score >= 7 ? 'أنت مسعف قدير! تملك المعرفة والسرعة لحفظ الأرواح.' : 'محاولة جيدة! واصل التعلم وتجربة التحدي مرة أخرى.'}</p>
+            <button class="start" style="margin-top: 20px;" onclick="renderHomeScreen()">العودة للرئيسية</button>
+        </div>
+    `;
+}
+
+function cancelAttempt(reason) {
+    if (!gameInProgress) return;
+    gameInProgress = false;
+    clearInterval(timerInterval);
+    clearInterval(offlineTimerInterval);
+    hideOfflineOverlay();
+    renderHomeScreen(reason || "تم إلغاء المحاولة للتمكن من البدء من جديد.");
+}
+
+// التعامل مع الخروج من التبويب أو التطبيق
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden && gameInProgress) {
+        cancelAttempt("تم إلغاء المحاولة بسبب الخروج من اللعبة");
+    }
+});
+
+window.addEventListener("blur", () => {
+    if (gameInProgress) {
+        cancelAttempt("تم إلغاء المحاولة بسبب الخروج من اللعبة");
+    }
+});
+
+// التعامل مع انقطاع الإنترنت
+function handleOffline() {
+    if (!gameInProgress || isOfflinePaused) return;
+    isOfflinePaused = true;
+    showOfflineOverlay();
+
+    offlineTimeLeft = 120;
+    clearInterval(offlineTimerInterval);
+    offlineTimerInterval = setInterval(() => {
+        offlineTimeLeft--;
+        const offlineCountElem = document.getElementById("offline-countdown");
+        if (offlineCountElem) {
+            offlineCountElem.innerText = `المتبقي للمحاولة: ${offlineTimeLeft} ثانية`;
+        }
+
+        if (navigator.onLine) {
+            handleOnline();
+        }
+
+        if (offlineTimeLeft <= 0) {
+            clearInterval(offlineTimerInterval);
+            isOfflinePaused = false;
+            cancelAttempt("تم إلغاء المحاولة بسبب انقطاع الاتصال لأكثر من دقيقتين");
+        }
+    }, 1000);
+}
+
+function handleOnline() {
+    if (!isOfflinePaused) return;
+    isOfflinePaused = false;
+    clearInterval(offlineTimerInterval);
+    hideOfflineOverlay();
+}
+
+window.addEventListener("offline", handleOffline);
+window.addEventListener("online", handleOnline);
+
+function showOfflineOverlay() {
+    let overlay = document.getElementById("offline-overlay");
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "offline-overlay";
+        overlay.className = "offline-overlay";
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = `
+        <div class="offline-content">
+            <h2>⚠️ انقطع الاتصال</h2>
+            <p>جاري محاولة إعادة الاتصال...</p>
+            <span id="offline-countdown" style="font-size: 14px; opacity: 0.85;">المتبقي للمحاولة: 120 ثانية</span>
+        </div>
+    `;
+    overlay.style.display = "flex";
+}
+
+function hideOfflineOverlay() {
+    const overlay = document.getElementById("offline-overlay");
+    if (overlay) {
+        overlay.style.display = "none";
+    }
+}
+
+// البدء بتحميل الأسئلة وعرض الصفحة الرئيسية
+loadQuestions().then(() => {
+    renderHomeScreen();
+});
