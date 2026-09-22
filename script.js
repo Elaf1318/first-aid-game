@@ -14,54 +14,183 @@ let currentGameQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let timerInterval = null;
-let timeLeft = 10;
+let timeLeft = 15; // 15 ثانية لكل سؤال
 let gameInProgress = false;
 let isOfflinePaused = false;
 let offlineTimerInterval = null;
 let offlineTimeLeft = 120;
 let questionAnswered = false;
 
-// صوت تنبيه لمؤقت الثواني الأخيرة (3، 2، 1)
-function playWarningBeep() {
-    try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        const ctx = new AudioContextClass();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.12, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.15);
-    } catch (e) {
-        // يتجاهل إذا لم يتفاعل المستخدم بعد مع الصفحة
-    }
+// بيانات المشارك الحالي
+let currentParticipant = {
+    name: "",
+    email: ""
+};
+
+let gameStartTime = 0;
+
+function escapeHtml(text) {
+    if (!text) return "";
+    return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 async function loadQuestions() {
-    const { data, error } = await supabaseClient
-        .from("questions")
-        .select("*")
-        .order("question_number");
+    try {
+        const { data, error } = await supabaseClient
+            .from("questions")
+            .select("id, question_number, question_text, options, correct_option, explanation, difficulty, topic")
+            .eq("active", true);
 
-    if (error) {
-        console.error("فشل تحميل الأسئلة:", error);
+        if (error) {
+            console.error("فشل تحميل الأسئلة من Supabase:", error);
+            allQuestions = [];
+            return false;
+        }
+
+        if (!data || data.length < 10) {
+            console.error("عدد الأسئلة الفعالة أقل من 10 (العدد الحالي: " + (data ? data.length : 0) + ")");
+            allQuestions = [];
+            return false;
+        }
+
+        allQuestions = data.map(q => ({
+            id: q.id,
+            question_number: q.question_number,
+            q: q.question_text,
+            a: q.options,
+            c: q.correct_option,
+            e: q.explanation,
+            difficulty: q.difficulty || "medium",
+            topic: q.topic || "General"
+        }));
+
+        return true;
+    } catch (err) {
+        console.error("خطأ أثناء جلب الأسئلة:", err);
+        allQuestions = [];
         return false;
     }
+}
 
-    allQuestions = data.map(q => ({
-        q: q.question_text,
-        a: q.options,
-        c: q.correct_option,
-        e: q.explanation
-    }));
+function selectGameQuestions() {
+    if (!allQuestions || allQuestions.length < 10) {
+        console.error("التحقق قبل بدء اللعبة فشل: عدد الأسئلة المتاحة أقل من 10 (العدد الحالي: " + (allQuestions ? allQuestions.length : 0) + ")");
+        return null;
+    }
 
-    console.log("تم تحميل الأسئلة:", allQuestions);
-    return true;
+    // تقسيم الأسئلة حسب الصعوبة
+    const easyPool = [];
+    const mediumPool = [];
+    const hardPool = [];
+    const otherPool = [];
+
+    allQuestions.forEach(q => {
+        const diff = (q.difficulty || "").toLowerCase().trim();
+        if (diff === "easy" || diff === "سهل") {
+            easyPool.push(q);
+        } else if (diff === "medium" || diff === "متوسط") {
+            mediumPool.push(q);
+        } else if (diff === "hard" || diff === "صعب") {
+            hardPool.push(q);
+        } else {
+            otherPool.push(q);
+        }
+    });
+
+    const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
+
+    const shuffledEasy = shuffle(easyPool);
+    const shuffledMedium = shuffle(mediumPool);
+    const shuffledHard = shuffle(hardPool);
+    const shuffledOther = shuffle(otherPool);
+
+    // التوزيع المستهدف: 3 easy, 5 medium, 2 hard
+    const selected = [];
+
+    const takeFromBucket = (bucket, count) => {
+        const taken = bucket.splice(0, count);
+        selected.push(...taken);
+        return count - taken.length;
+    };
+
+    let easyNeeded = takeFromBucket(shuffledEasy, 3);
+    let mediumNeeded = takeFromBucket(shuffledMedium, 5);
+    let hardNeeded = takeFromBucket(shuffledHard, 2);
+
+    let totalNeeded = easyNeeded + mediumNeeded + hardNeeded;
+
+    if (totalNeeded > 0) {
+        const remainingPool = shuffle([
+            ...shuffledEasy,
+            ...shuffledMedium,
+            ...shuffledHard,
+            ...shuffledOther
+        ]);
+        const extra = remainingPool.splice(0, totalNeeded);
+        selected.push(...extra);
+    }
+
+    // التحقق قبل بدء اللعبة
+    if (selected.length !== 10) {
+        console.error("التحقق قبل بدء اللعبة فشل: عدد الأسئلة المختارة ليس 10 (العدد: " + selected.length + ")");
+        return null;
+    }
+
+    const idsSet = new Set();
+    for (let i = 0; i < selected.length; i++) {
+        const q = selected[i];
+        if (!q.id) {
+            console.error("التحقق قبل بدء اللعبة فشل: يوجد سؤال بدون id", q);
+            return null;
+        }
+        if (idsSet.has(q.id)) {
+            console.error("التحقق قبل بدء اللعبة فشل: يوجد id مكرر (" + q.id + ")");
+            return null;
+        }
+        idsSet.add(q.id);
+
+        if (!Array.isArray(q.a) || q.a.length === 0) {
+            console.error("التحقق قبل بدء اللعبة فشل: السؤال لا يحتوي على options صالحة", q);
+            return null;
+        }
+        if (q.c === undefined || q.c === null || typeof q.c !== "number") {
+            console.error("التحقق قبل بدء اللعبة فشل: السؤال لا يحتوي على correct_option صالح", q);
+            return null;
+        }
+    }
+
+    // ترتيب الأسئلة ومنع تكرار الـ topic المتتالي
+    const pool = [...selected];
+    const sequence = [];
+
+    while (pool.length > 0) {
+        const lastTopic = sequence.length > 0 ? sequence[sequence.length - 1].topic : null;
+        let validCandidates = pool.filter(item => item.topic !== lastTopic);
+
+        if (validCandidates.length === 0) {
+            validCandidates = pool;
+        }
+
+        const randomIndex = Math.floor(Math.random() * validCandidates.length);
+        const chosen = validCandidates[randomIndex];
+
+        sequence.push(chosen);
+        const idxInPool = pool.findIndex(item => item.id === chosen.id);
+        pool.splice(idxInPool, 1);
+    }
+
+    // Console logging للاختبار
+    console.log("Selected questions: 10");
+    sequence.forEach((q, idx) => {
+        console.log(`${idx + 1} ${q.topic} ${q.difficulty}`);
+    });
+
+    return sequence;
 }
 
 function renderHomeScreen(message = "") {
@@ -81,8 +210,8 @@ function renderHomeScreen(message = "") {
     }
 
     html += `
-        <div class="mode-selection">
-            <button class="mode-card primary" onclick="startAdultChallenge()">
+        <div class="mode-selection horizontal">
+            <button class="mode-card primary" onclick="showRegistrationForm()">
                 <span class="mode-title">🚑 المسعف</span>
                 <span class="mode-desc">تحدي الإسعافات الأولية</span>
             </button>
@@ -101,21 +230,95 @@ function renderHomeScreen(message = "") {
     app.innerHTML = html;
 }
 
+function showRegistrationForm(errorMessage = "") {
+    gameInProgress = false;
+    const app = document.getElementById("app");
+    app.innerHTML = `
+        <h1><span class="kit">✚</span> أنت المسعف</h1>
+        <div class="registration-box">
+            <h2>تسجيل المشارك</h2>
+            <p>أدخل بياناتك للبدء في التحدي (محاولة واحدة فقط مسموحة لكل بريد):</p>
+            ${errorMessage ? `<div class="result wrong" style="margin-bottom: 12px;"><p>${errorMessage}</p></div>` : ''}
+            <form onsubmit="handleRegistrationSubmit(event)">
+                <div class="input-group">
+                    <label for="player-name">الاسم الكامل:</label>
+                    <input type="text" id="player-name" class="custom-input" required placeholder="أدخل اسمك هنا" value="${escapeHtml(currentParticipant.name)}">
+                </div>
+                <div class="input-group">
+                    <label for="player-email">البريد الإلكتروني:</label>
+                    <input type="email" id="player-email" class="custom-input" required placeholder="example@domain.com" value="${escapeHtml(currentParticipant.email)}">
+                </div>
+                <button type="submit" class="start" style="margin-top: 15px;">بدء التحدي 🚑</button>
+            </form>
+        </div>
+    `;
+}
+
+async function handleRegistrationSubmit(event) {
+    event.preventDefault();
+    const nameInput = document.getElementById("player-name").value.trim();
+    const emailInput = document.getElementById("player-email").value.trim().toLowerCase();
+
+    if (!nameInput || !emailInput) {
+        showRegistrationForm("يرجى ملء جميع الحقول المطلوب.");
+        return;
+    }
+
+    currentParticipant.name = nameInput;
+    currentParticipant.email = emailInput;
+
+    // التحقق من وجود محاولة مكتملة لهذه البريد الإلكتروني في Supabase أو التخزين المحلي
+    const hasCompleted = await checkEmailCompleted(emailInput);
+    if (hasCompleted) {
+        showRegistrationForm("⚠️ عذراً، هذا البريد الإلكتروني قد أكمل محاولة سابقة بالفعل. لا يمكن إكمال محاولة ثانية.");
+        return;
+    }
+
+    startAdultChallenge();
+}
+
+async function checkEmailCompleted(email) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("attempts")
+            .select("id")
+            .eq("email", email)
+            .eq("completed", true);
+
+        if (!error && data && data.length > 0) {
+            return true;
+        }
+
+        // التحقق التلقائي من التخزين المحلي الاحتياطي
+        const localAttempts = JSON.parse(localStorage.getItem("local_attempts") || "[]");
+        return localAttempts.some(a => a.email.toLowerCase() === email && a.completed);
+    } catch (e) {
+        console.error("خطأ أثناء فحص البريد الإلكتروني:", e);
+        const localAttempts = JSON.parse(localStorage.getItem("local_attempts") || "[]");
+        return localAttempts.some(a => a.email.toLowerCase() === email && a.completed);
+    }
+}
+
 async function startAdultChallenge() {
-    if (allQuestions.length === 0) {
+    if (!allQuestions || allQuestions.length < 10) {
         const success = await loadQuestions();
-        if (!success || allQuestions.length === 0) {
-            alert("تعذر تحميل الأسئلة. يرجى التثبت من الاتصال بالإنترنت والمحاولة مجدداً.");
+        if (!success || allQuestions.length < 10) {
+            alert("تعذر تحميل الأسئلة الفعالة من قاعدة البيانات. يرجى التأكد من الاتصال بالإنترنت والمحاولة مجدداً.");
             return;
         }
     }
 
-    // اختيار 10 أسئلة عشوائية بدون تكرار
-    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-    currentGameQuestions = shuffled.slice(0, 10);
+    const selected = selectGameQuestions();
+    if (!selected || selected.length !== 10) {
+        alert("تعذر اختيار الأسئلة الفعالة للعبة. تحقق من وحدة التحكم (Console).");
+        return;
+    }
+
+    currentGameQuestions = selected;
     currentQuestionIndex = 0;
     score = 0;
     gameInProgress = true;
+    gameStartTime = Date.now();
 
     renderQuestion();
 }
@@ -127,13 +330,15 @@ function startChildChallenge() {
 function renderQuestion() {
     questionAnswered = false;
     const currentQ = currentGameQuestions[currentQuestionIndex];
-    timeLeft = 10;
+    timeLeft = 15; // 15 ثانية
 
     const app = document.getElementById("app");
     let html = `
         <div class="quiz-header">
             <span class="progress-text">السؤال ${currentQuestionIndex + 1} من 10</span>
-            <span id="timer" class="timer-box">⏱️ 10</span>
+        </div>
+        <div class="timeline-container">
+            <div id="timeline-bar" class="timeline-bar" style="width: 100%;"></div>
         </div>
         <div class="question-container">
             <h2>${currentQ.q}</h2>
@@ -157,19 +362,23 @@ function renderQuestion() {
 
 function startTimer() {
     clearInterval(timerInterval);
-    const timerElem = document.getElementById("timer");
+    const barElem = document.getElementById("timeline-bar");
+    const totalDuration = 15; // 15s
 
+    // تحديث كل 100 ملّي ثانية لسلاسة الشريط الزمني
     timerInterval = setInterval(() => {
         if (isOfflinePaused) return;
 
-        timeLeft--;
-        if (timerElem) {
-            timerElem.innerText = `⏱️ ${timeLeft}`;
-            if (timeLeft <= 3 && timeLeft > 0) {
-                timerElem.classList.add("timer-warning");
-                playWarningBeep();
-            } else if (timeLeft > 3) {
-                timerElem.classList.remove("timer-warning");
+        timeLeft -= 0.1;
+        const percent = Math.max(0, (timeLeft / totalDuration) * 100);
+
+        if (barElem) {
+            barElem.style.width = `${percent}%`;
+
+            if (timeLeft <= 5.0) {
+                barElem.classList.add("warning");
+            } else {
+                barElem.classList.remove("warning");
             }
         }
 
@@ -179,7 +388,7 @@ function startTimer() {
                 handleTimeOut();
             }
         }
-    }, 1000);
+    }, 100);
 }
 
 function handleAnswerSelect(selectedIndex) {
@@ -212,7 +421,7 @@ function handleAnswerSelect(selectedIndex) {
 
     setTimeout(() => {
         nextQuestion();
-    }, 2200);
+    }, 2000);
 }
 
 function handleTimeOut() {
@@ -236,7 +445,7 @@ function handleTimeOut() {
 
     setTimeout(() => {
         nextQuestion();
-    }, 2200);
+    }, 2000);
 }
 
 function nextQuestion() {
@@ -248,16 +457,133 @@ function nextQuestion() {
     }
 }
 
-function finishGame() {
+async function finishGame() {
     gameInProgress = false;
     clearInterval(timerInterval);
+
+    const totalTimeSeconds = Math.round((Date.now() - gameStartTime) / 1000);
+    await saveAttempt(currentParticipant.name, currentParticipant.email, score, totalTimeSeconds);
+    await renderLeaderboardScreen(score, totalTimeSeconds);
+}
+
+async function saveAttempt(name, email, finalScore, totalTime) {
+    const attemptRecord = {
+        name: name,
+        email: email,
+        score: finalScore,
+        total_time: totalTime,
+        completed: true,
+        created_at: new Date().toISOString()
+    };
+
+    try {
+        const { error } = await supabaseClient
+            .from("attempts")
+            .insert([attemptRecord]);
+
+        if (error) {
+            console.warn("فشل حفظ المحاولة في Supabase:", error);
+            saveLocalAttempt(attemptRecord);
+        }
+    } catch (e) {
+        console.error("خطأ حفظ المحاولة:", e);
+        saveLocalAttempt(attemptRecord);
+    }
+}
+
+function saveLocalAttempt(record) {
+    const localAttempts = JSON.parse(localStorage.getItem("local_attempts") || "[]");
+    localAttempts.push(record);
+    localStorage.setItem("local_attempts", JSON.stringify(localAttempts));
+}
+
+async function fetchLeaderboard() {
+    let list = [];
+    try {
+        const { data, error } = await supabaseClient
+            .from("attempts")
+            .select("name, email, score, total_time")
+            .eq("completed", true)
+            .order("score", { ascending: false })
+            .order("total_time", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+            list = data;
+        } else {
+            const localAttempts = JSON.parse(localStorage.getItem("local_attempts") || "[]");
+            list = localAttempts.filter(a => a.completed);
+            list.sort((a, b) => b.score - a.score || a.total_time - b.total_time);
+        }
+    } catch (e) {
+        const localAttempts = JSON.parse(localStorage.getItem("local_attempts") || "[]");
+        list = localAttempts.filter(a => a.completed);
+        list.sort((a, b) => b.score - a.score || a.total_time - b.total_time);
+    }
+    return list;
+}
+
+async function renderLeaderboardScreen(userScore, userTotalTime) {
+    gameInProgress = false;
+    clearInterval(timerInterval);
+    clearInterval(offlineTimerInterval);
+    hideOfflineOverlay();
+
+    const leaderboard = await fetchLeaderboard();
+    
+    // معرفة ترتيب اللاعب
+    let userRank = "-";
+    if (currentParticipant.email) {
+        const index = leaderboard.findIndex(item => item.email && item.email.toLowerCase() === currentParticipant.email.toLowerCase());
+        if (index !== -1) {
+            userRank = `#${index + 1}`;
+        }
+    }
+
+    let rowsHtml = "";
+    leaderboard.forEach((item, index) => {
+        const rank = index + 1;
+        let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`;
+        const isCurrentUser = currentParticipant.email && item.email && item.email.toLowerCase() === currentParticipant.email.toLowerCase();
+
+        rowsHtml += `
+            <tr class="${isCurrentUser ? 'current-player-row' : ''}">
+                <td>${medal}</td>
+                <td>${escapeHtml(item.name)}</td>
+                <td><strong>${item.score} / 10</strong></td>
+                <td>${item.total_time} ثانية</td>
+            </tr>
+        `;
+    });
+
     const app = document.getElementById("app");
     app.innerHTML = `
         <div class="result final-result">
             <h2>🏆 اكتمل التحدي!</h2>
-            <h1 class="score-display">نتيجتك: ${score} / 10</h1>
-            <p>${score >= 7 ? 'أنت مسعف قدير! تملك المعرفة والسرعة لحفظ الأرواح.' : 'محاولة جيدة! واصل التعلم وتجربة التحدي مرة أخرى.'}</p>
-            <button class="start" style="margin-top: 20px;" onclick="renderHomeScreen()">العودة للرئيسية</button>
+            <div class="score-summary">
+                <p>النتيجة: <strong class="score-text">${userScore} / 10</strong></p>
+                <p>الوقت الإجمالي: <strong>${userTotalTime} ثانية</strong></p>
+                ${userRank !== '-' ? `<p class="rank-badge">الترتيب في لوحة الصدارة: <strong>${userRank}</strong></p>` : ''}
+            </div>
+
+            <h3 class="leaderboard-title">📊 لوحة الصدارة (Leaderboard)</h3>
+            <div class="table-responsive">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>الترتيب</th>
+                            <th>الاسم</th>
+                            <th>النتيجة</th>
+                            <th>الوقت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml || '<tr><td colspan="4">لا توجد نتائج مسجلة بعد</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+            <p class="final-note">
+                شكراً لمشاركتك! تم تسجيل محاولتك بنجاح ولا يمكن إعادتها.
+            </p>
         </div>
     `;
 }

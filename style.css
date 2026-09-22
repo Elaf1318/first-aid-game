@@ -15,7 +15,7 @@ body {
 }
 
 #app {
-    width: min(100%, 500px);
+    width: min(100%, 520px);
     margin: auto;
     background: white;
     padding: 30px;
@@ -70,6 +70,7 @@ button {
     color: white;
     border: 0;
     box-shadow: 0 5px 12px #ad202833;
+    font-weight: bold;
 }
 
 .start:hover {
@@ -86,20 +87,21 @@ button {
     background: #fff6f4;
 }
 
-/* بطاقات اختيار التحدي */
-.mode-selection {
+/* بطاقات اختيار التحدي (أفقية جنب بعض) */
+.mode-selection.horizontal {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
     margin-top: 20px;
 }
 
 .mode-card {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 18px 15px;
+    padding: 20px 12px;
     border-radius: 16px;
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
@@ -131,24 +133,72 @@ button {
 }
 
 .mode-title {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .mode-desc {
-    font-size: 14px;
+    font-size: 13px;
     opacity: 0.9;
 }
 
-/* رأس الأسئلة والمؤقت */
+/* نمذجة تسجيل البيانات */
+.registration-box {
+    text-align: right;
+    margin-top: 15px;
+}
+
+.registration-box h2 {
+    text-align: center;
+    color: #8f1d25;
+    margin-bottom: 8px;
+}
+
+.registration-box p {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 18px;
+}
+
+.input-group {
+    margin-bottom: 14px;
+    text-align: right;
+}
+
+.input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #302525;
+}
+
+.custom-input {
+    width: 100%;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    border: 1.5px solid #ecd9d6;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #fdfaf9;
+    color: #302525;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.custom-input:focus {
+    border-color: #ad2028;
+    background: #ffffff;
+}
+
+/* الخط الزمني للمؤقت */
 .quiz-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ecd9d6;
+    margin-bottom: 8px;
 }
 
 .progress-text {
@@ -157,27 +207,30 @@ button {
     font-size: 16px;
 }
 
-.timer-box {
-    font-size: 16px;
-    font-weight: bold;
-    padding: 4px 10px;
-    border-radius: 8px;
-    background: #fff1f0;
-    color: #8f1d25;
-    border: 1px solid #ecd9d6;
-    transition: all 0.2s ease;
+.timeline-container {
+    width: 100%;
+    height: 10px;
+    background: #f0dedc;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 18px;
 }
 
-.timer-warning {
+.timeline-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ad2028, #e04851);
+    border-radius: 6px;
+    transition: width 0.1s linear, background 0.3s ease;
+}
+
+.timeline-bar.warning {
     background: #b51f28 !important;
-    color: white !important;
-    border-color: #b51f28 !important;
-    animation: pulseTimer 0.5s infinite alternate;
+    animation: barPulse 0.4s infinite alternate;
 }
 
-@keyframes pulseTimer {
-    from { transform: scale(1); }
-    to { transform: scale(1.08); }
+@keyframes barPulse {
+    from { opacity: 1; transform: scaleY(1); }
+    to { opacity: 0.7; transform: scaleY(1.2); }
 }
 
 /* خيارات الإجابة والتغذية الراجعة */
@@ -205,10 +258,78 @@ button {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.score-display {
-    color: #b51f28;
-    font-size: 32px;
+/* لوحة الصدارة والشاشة النهائية */
+.score-summary {
+    background: #fff5f4;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #ecd9d6;
     margin: 15px 0;
+}
+
+.score-summary p {
+    margin: 6px 0;
+    font-size: 16px;
+}
+
+.score-text {
+    color: #b51f28;
+    font-size: 24px;
+}
+
+.rank-badge {
+    color: #8f1d25;
+    font-size: 17px;
+    margin-top: 8px !important;
+}
+
+.leaderboard-title {
+    color: #8f1d25;
+    margin: 20px 0 10px 0;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 1px solid #ecd9d6;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    text-align: center;
+    font-size: 14px;
+}
+
+.leaderboard-table th {
+    background: #ad2028;
+    color: white;
+    padding: 12px 8px;
+    font-weight: bold;
+}
+
+.leaderboard-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0dedc;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background: #fcf8f7;
+}
+
+.current-player-row {
+    background: #ffebeb !important;
+    font-weight: bold;
+    color: #8f1d25;
+}
+
+.final-note {
+    font-size: 13px;
+    color: #777;
+    margin-top: 18px;
+    font-style: italic;
 }
 
 /* شاشة انقطع الاتصال */
@@ -242,12 +363,16 @@ button {
     margin-top: 0;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
     #app {
-        padding: 24px 18px;
+        padding: 22px 16px;
+    }
+
+    .mode-selection.horizontal {
+        flex-direction: column;
     }
 
     h1 {
-        font-size: 28px;
+        font-size: 26px;
     }
 }
