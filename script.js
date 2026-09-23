@@ -201,18 +201,31 @@ function renderHomeScreen(message = "") {
 
     const app = document.getElementById("app");
     let html = `
-        <h1><span class="kit">✚</span> أنت المسعف</h1>
-        <p>موقف واحد، قرار واحد. هل أنت مستعد؟</p>
+        <div class="brand-header">
+            <div class="brand-logo">
+                <svg class="kit-icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="15" rx="3"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M12 10v6"/><path d="M9 13h6"/></svg>
+            </div>
+            <h1>أنت المسعف</h1>
+            <p class="subtitle">موقف واحد، قرار واحد. هل أنت مستعد للتحدي؟</p>
+        </div>
     `;
 
     if (message) {
-        html += `<div class="result wrong" style="margin-bottom: 15px;"><p>${message}</p></div>`;
+        html += `
+            <div class="result wrong banner-alert">
+                <svg class="status-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>${message}</span>
+            </div>
+        `;
     }
 
     html += `
         <div class="mode-selection horizontal">
             <button class="mode-card primary" onclick="showRegistrationForm()">
-                <span class="mode-title">🚑 المسعف</span>
+                <div class="card-icon-wrap">
+                    <svg class="mode-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                </div>
+                <span class="mode-title">المسعف</span>
                 <span class="mode-desc">تحدي الإسعافات الأولية</span>
             </button>
     `;
@@ -220,7 +233,10 @@ function renderHomeScreen(message = "") {
     if (SHOW_CHILD_MODE) {
         html += `
             <button class="mode-card secondary" onclick="startChildChallenge()">
-                <span class="mode-title">🧒 المسعف الصغير</span>
+                <div class="card-icon-wrap">
+                    <svg class="mode-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+                </div>
+                <span class="mode-title">المسعف الصغير</span>
                 <span class="mode-desc">تحدٍ تعليمي للأطفال</span>
             </button>
         `;
@@ -234,21 +250,34 @@ function showRegistrationForm(errorMessage = "") {
     gameInProgress = false;
     const app = document.getElementById("app");
     app.innerHTML = `
-        <h1><span class="kit">✚</span> أنت المسعف</h1>
+        <div class="brand-header compact">
+            <div class="brand-logo small">
+                <svg class="kit-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="15" rx="3"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M12 10v6"/><path d="M9 13h6"/></svg>
+            </div>
+            <h1>أنت المسعف</h1>
+        </div>
         <div class="registration-box">
             <h2>تسجيل المشارك</h2>
-            <p>أدخل بياناتك للبدء في التحدي (محاولة واحدة فقط مسموحة لكل بريد):</p>
-            ${errorMessage ? `<div class="result wrong" style="margin-bottom: 12px;"><p>${errorMessage}</p></div>` : ''}
+            <p class="reg-subtitle">أدخل بياناتك للبدء في التحدي (محاولة واحدة فقط لكل بريد):</p>
+            ${errorMessage ? `
+                <div class="result wrong banner-alert">
+                    <svg class="status-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>${errorMessage}</span>
+                </div>
+            ` : ''}
             <form onsubmit="handleRegistrationSubmit(event)">
                 <div class="input-group">
-                    <label for="player-name">الاسم الكامل:</label>
-                    <input type="text" id="player-name" class="custom-input" required placeholder="أدخل اسمك هنا" value="${escapeHtml(currentParticipant.name)}">
+                    <label for="player-name">الاسم الكامل</label>
+                    <input type="text" id="player-name" class="custom-input" required placeholder="أدخل اسمك الكامل" value="${escapeHtml(currentParticipant.name)}">
                 </div>
                 <div class="input-group">
-                    <label for="player-email">البريد الإلكتروني:</label>
-                    <input type="email" id="player-email" class="custom-input" required placeholder="example@domain.com" value="${escapeHtml(currentParticipant.email)}">
+                    <label for="player-email">البريد الإلكتروني</label>
+                    <input type="email" id="player-email" class="custom-input" required placeholder="name@example.com" value="${escapeHtml(currentParticipant.email)}">
                 </div>
-                <button type="submit" class="start" style="margin-top: 15px;">بدء التحدي 🚑</button>
+                <button type="submit" class="start main-action-btn">
+                    <span>بدء التحدي</span>
+                    <svg class="btn-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </button>
             </form>
         </div>
     `;
@@ -260,17 +289,16 @@ async function handleRegistrationSubmit(event) {
     const emailInput = document.getElementById("player-email").value.trim().toLowerCase();
 
     if (!nameInput || !emailInput) {
-        showRegistrationForm("يرجى ملء جميع الحقول المطلوب.");
+        showRegistrationForm("يرجى ملء جميع الحقول المطلوبة.");
         return;
     }
 
     currentParticipant.name = nameInput;
     currentParticipant.email = emailInput;
 
-    // التحقق من وجود محاولة مكتملة لهذه البريد الإلكتروني في Supabase أو التخزين المحلي
     const hasCompleted = await checkEmailCompleted(emailInput);
     if (hasCompleted) {
-        showRegistrationForm("⚠️ عذراً، هذا البريد الإلكتروني قد أكمل محاولة سابقة بالفعل. لا يمكن إكمال محاولة ثانية.");
+        showRegistrationForm("عذراً، هذا البريد الإلكتروني قد أكمل محاولة سابقة بالفعل. لا يمكن إكمال محاولة ثانية.");
         return;
     }
 
@@ -330,24 +358,37 @@ function startChildChallenge() {
 function renderQuestion() {
     questionAnswered = false;
     const currentQ = currentGameQuestions[currentQuestionIndex];
-    timeLeft = 15; // 15 ثانية
+    timeLeft = 15;
+
+    const optionBadges = ["أ", "ب", "ج", "د"];
 
     const app = document.getElementById("app");
     let html = `
         <div class="quiz-header">
-            <span class="progress-text">السؤال ${currentQuestionIndex + 1} من 10</span>
+            <span class="progress-badge">السؤال ${currentQuestionIndex + 1} من 10</span>
+            <div class="timer-badge">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="timer-text">${Math.ceil(timeLeft)}s</span>
+            </div>
         </div>
         <div class="timeline-container">
             <div id="timeline-bar" class="timeline-bar" style="width: 100%;"></div>
         </div>
         <div class="question-container">
-            <h2>${currentQ.q}</h2>
-            <p>اختر التصرف الأنسب:</p>
+            <div class="question-card">
+                <h2>${currentQ.q}</h2>
+            </div>
+            <p class="instruction-text">اختر التصرف الأنسب:</p>
             <div class="options-list">
     `;
 
     currentQ.a.forEach((answer, index) => {
-        html += `<button class="answer" id="opt-${index}" onclick="handleAnswerSelect(${index})">${answer}</button>`;
+        html += `
+            <button class="answer" id="opt-${index}" onclick="handleAnswerSelect(${index})">
+                <span class="option-badge">${optionBadges[index] || index + 1}</span>
+                <span class="option-text">${answer}</span>
+            </button>
+        `;
     });
 
     html += `
@@ -363,9 +404,9 @@ function renderQuestion() {
 function startTimer() {
     clearInterval(timerInterval);
     const barElem = document.getElementById("timeline-bar");
-    const totalDuration = 15; // 15s
+    const timerTextElem = document.getElementById("timer-text");
+    const totalDuration = 15;
 
-    // تحديث كل 100 ملّي ثانية لسلاسة الشريط الزمني
     timerInterval = setInterval(() => {
         if (isOfflinePaused) return;
 
@@ -380,6 +421,10 @@ function startTimer() {
             } else {
                 barElem.classList.remove("warning");
             }
+        }
+
+        if (timerTextElem) {
+            timerTextElem.innerText = `${Math.max(0, Math.ceil(timeLeft))}s`;
         }
 
         if (timeLeft <= 0) {
@@ -415,8 +460,21 @@ function handleAnswerSelect(selectedIndex) {
     const feedbackElem = document.getElementById("feedback-area");
     if (feedbackElem) {
         feedbackElem.innerHTML = isCorrect
-            ? `<div class="result inline-feedback"><h2>✅ إجابة صحيحة!</h2><p>${currentQ.e}</p></div>`
-            : `<div class="result wrong inline-feedback"><h2>❌ إجابة غير صحيحة</h2><p>الإجابة الصحيحة: <strong>${currentQ.a[currentQ.c]}</strong></p><p>${currentQ.e}</p></div>`;
+            ? `<div class="result success-feedback inline-feedback">
+                <div class="feedback-header">
+                    <svg class="status-icon success" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <h3>إجابة صحيحة</h3>
+                </div>
+                <p>${currentQ.e}</p>
+               </div>`
+            : `<div class="result wrong-feedback inline-feedback">
+                <div class="feedback-header">
+                    <svg class="status-icon error" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <h3>إجابة غير صحيحة</h3>
+                </div>
+                <p class="correct-answer-text">الإجابة الصحيحة: <strong>${currentQ.a[currentQ.c]}</strong></p>
+                <p>${currentQ.e}</p>
+               </div>`;
     }
 
     setTimeout(() => {
@@ -440,7 +498,15 @@ function handleTimeOut() {
 
     const feedbackElem = document.getElementById("feedback-area");
     if (feedbackElem) {
-        feedbackElem.innerHTML = `<div class="result wrong inline-feedback"><h2>⏰ انتهى الوقت!</h2><p>الإجابة الصحيحة: <strong>${currentQ.a[currentQ.c]}</strong></p><p>${currentQ.e}</p></div>`;
+        feedbackElem.innerHTML = `
+            <div class="result timeout-feedback inline-feedback">
+                <div class="feedback-header">
+                    <svg class="status-icon timeout" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <h3>انتهى الوقت</h3>
+                </div>
+                <p class="correct-answer-text">الإجابة الصحيحة: <strong>${currentQ.a[currentQ.c]}</strong></p>
+                <p>${currentQ.e}</p>
+            </div>`;
     }
 
     setTimeout(() => {
@@ -530,7 +596,6 @@ async function renderLeaderboardScreen(userScore, userTotalTime) {
 
     const leaderboard = await fetchLeaderboard();
     
-    // معرفة ترتيب اللاعب
     let userRank = "-";
     if (currentParticipant.email) {
         const index = leaderboard.findIndex(item => item.email && item.email.toLowerCase() === currentParticipant.email.toLowerCase());
@@ -542,15 +607,15 @@ async function renderLeaderboardScreen(userScore, userTotalTime) {
     let rowsHtml = "";
     leaderboard.forEach((item, index) => {
         const rank = index + 1;
-        let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`;
+        const rankClass = rank === 1 ? 'rank-gold' : rank === 2 ? 'rank-silver' : rank === 3 ? 'rank-bronze' : 'rank-normal';
         const isCurrentUser = currentParticipant.email && item.email && item.email.toLowerCase() === currentParticipant.email.toLowerCase();
 
         rowsHtml += `
             <tr class="${isCurrentUser ? 'current-player-row' : ''}">
-                <td>${medal}</td>
-                <td>${escapeHtml(item.name)}</td>
-                <td><strong>${item.score} / 10</strong></td>
-                <td>${item.total_time} ثانية</td>
+                <td><span class="rank-badge-cell ${rankClass}">${rank}</span></td>
+                <td class="player-name-cell">${escapeHtml(item.name)}</td>
+                <td><span class="score-badge">${item.score} / 10</span></td>
+                <td><span class="time-text">${item.total_time}ث</span></td>
             </tr>
         `;
     });
@@ -558,28 +623,45 @@ async function renderLeaderboardScreen(userScore, userTotalTime) {
     const app = document.getElementById("app");
     app.innerHTML = `
         <div class="result final-result">
-            <h2>🏆 اكتمل التحدي!</h2>
-            <div class="score-summary">
-                <p>النتيجة: <strong class="score-text">${userScore} / 10</strong></p>
-                <p>الوقت الإجمالي: <strong>${userTotalTime} ثانية</strong></p>
-                ${userRank !== '-' ? `<p class="rank-badge">الترتيب في لوحة الصدارة: <strong>${userRank}</strong></p>` : ''}
+            <div class="result-header">
+                <h2>اكتمل التحدي</h2>
+                <p class="result-sub">تم تسجيل محاولتك بنجاح في لوحة الصدارة</p>
             </div>
 
-            <h3 class="leaderboard-title">📊 لوحة الصدارة (Leaderboard)</h3>
-            <div class="table-responsive">
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>الترتيب</th>
-                            <th>الاسم</th>
-                            <th>النتيجة</th>
-                            <th>الوقت</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml || '<tr><td colspan="4">لا توجد نتائج مسجلة بعد</td></tr>'}
-                    </tbody>
-                </table>
+            <div class="score-summary-grid">
+                <div class="summary-card main-score">
+                    <span class="summary-label">النتيجة</span>
+                    <strong class="score-text">${userScore} <span class="total-count">/ 10</span></strong>
+                </div>
+                <div class="summary-card time-score">
+                    <span class="summary-label">الوقت الإجمالي</span>
+                    <strong class="time-val">${userTotalTime} <span class="unit">ثانية</span></strong>
+                </div>
+                ${userRank !== '-' ? `
+                <div class="summary-card rank-score">
+                    <span class="summary-label">الترتيب في الصدارة</span>
+                    <strong class="rank-val">${userRank}</strong>
+                </div>
+                ` : ''}
+            </div>
+
+            <div class="leaderboard-section">
+                <h3 class="leaderboard-title">لوحة الصدارة</h3>
+                <div class="table-responsive">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>الترتيب</th>
+                                <th>الاسم</th>
+                                <th>النتيجة</th>
+                                <th>الوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml || '<tr><td colspan="4">لا توجد نتائج مسجلة بعد</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <p class="final-note">
                 شكراً لمشاركتك! تم تسجيل محاولتك بنجاح ولا يمكن إعادتها.
@@ -657,9 +739,12 @@ function showOfflineOverlay() {
     }
     overlay.innerHTML = `
         <div class="offline-content">
-            <h2>⚠️ انقطع الاتصال</h2>
-            <p>جاري محاولة إعادة الاتصال...</p>
-            <span id="offline-countdown" style="font-size: 14px; opacity: 0.85;">المتبقي للمحاولة: 120 ثانية</span>
+            <div class="offline-icon-wrap">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            </div>
+            <h2>انقطع الاتصال</h2>
+            <p>جاري محاولة إعادة الاتصال بالشبكة...</p>
+            <div id="offline-countdown" class="offline-timer-badge">المتبقي للمحاولة: 120 ثانية</div>
         </div>
     `;
     overlay.style.display = "flex";
